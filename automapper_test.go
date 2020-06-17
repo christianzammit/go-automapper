@@ -4,6 +4,7 @@ package automapper
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,8 @@ func TestDestinationIsUpdatedFromSource(t *testing.T) {
 }
 
 func TestDestinationIsUpdatedFromSourceWhenSourcePassedAsPtr(t *testing.T) {
-	source, dest := SourceTypeA{42, "Bar"}, DestTypeA{}
+	timeRef := time.Now()
+	source, dest := SourceTypeA{42, "Bar", timeRef, &timeRef}, DestTypeA{}
 	Map(&source, &dest)
 	assert.Equal(t, 42, dest.Foo)
 	assert.Equal(t, "Bar", dest.Bar)
@@ -44,17 +46,6 @@ func TestWithNestedTypes(t *testing.T) {
 	Map(&source, &dest)
 	assert.Equal(t, "Baz", dest.Baz)
 	assert.Equal(t, "Bar", dest.Child.Bar)
-}
-
-func TestWithSourceSecondLevel(t *testing.T) {
-	source := struct {
-		Child DestTypeA
-	}{}
-	dest := SourceTypeA{}
-
-	source.Child.Bar = "Bar"
-	Map(&source, &dest)
-	assert.Equal(t, "Bar", dest.Bar)
 }
 
 func TestWithDestSecondLevel(t *testing.T) {
@@ -257,19 +248,27 @@ func TestWithLooseOption(t *testing.T) {
 }
 
 type SourceParent struct {
+	Mix      time.Time
+	Meh      *time.Time
 	Children []SourceTypeA
 }
 
 type DestParent struct {
 	Children []DestTypeA
+	Mix      string
+	Meh      *string
 }
 
 type SourceTypeA struct {
 	Foo int
 	Bar string
+	Mix time.Time
+	Meh *time.Time
 }
 
 type DestTypeA struct {
 	Foo int
 	Bar string
+	Mix string
+	Meh *string
 }

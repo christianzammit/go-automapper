@@ -13,6 +13,7 @@ package automapper
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
 
 // Map fills out the fields in dest with values from source. All fields in the
@@ -69,6 +70,28 @@ func mapValues(sourceVal, destVal reflect.Value, loose bool) {
 		for i := 0; i < destVal.NumField(); i++ {
 			mapField(sourceVal, destVal, i, loose)
 		}
+	} else if sourceVal.Type().String() == "time.Time" && destVal.Type().String() == "string" {
+
+		timeValue := sourceVal.Interface().(time.Time)
+		if timeValue.IsZero() {
+			return
+		}
+
+		v := reflect.ValueOf(timeValue.String())
+
+		destVal.Set(v)
+	} else if sourceVal.Type().String() == "*time.Time" && destVal.Type().String() == "*string" {
+
+		timeValue := sourceVal.Interface().(*time.Time)
+		if timeValue == nil {
+			return
+		}
+		var x *string
+		s := timeValue.String()
+		x = &s
+		v := reflect.ValueOf(x)
+		destVal.Set(v)
+
 	} else if destType == sourceVal.Type() {
 		destVal.Set(sourceVal)
 	} else if destType.Kind() == reflect.Ptr {
